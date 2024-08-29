@@ -1,5 +1,6 @@
 const express = require('express');
 const fs = require('fs'); //built in filesystem with node.js
+const path = require('path');
 const csvParser = require('csv-parser');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const cors = require('cors'); //Cross origin resourse sharing
@@ -10,8 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const csvFilePath = 'inventory.csv';
-
+let csvFilePath = 'inventory.csv';
 let inventory = [];
 
 //load csv data into memory
@@ -58,6 +58,12 @@ const updateCSVFile = () =>{
 loadCSVData();
 
 // Get all inventory items
+
+app.post('/change-csv', (req,res) =>{
+    csvFilePath = req.body.filePath;
+    loadCSVData();
+    res.status(200).json({message: 'CSV file path updated'});
+});
 
 app.get('/inventory', (req, res) =>{
     res.json(inventory);

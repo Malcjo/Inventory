@@ -1,3 +1,5 @@
+import { response } from "express";
+
 const CACHE_NAME = 'inventory-cache-v2';
 const urlsToCache = [
     '/',
@@ -19,42 +21,30 @@ self.addEventListener('install', (event) => {
 
 //Fetch event
 self.addEventListener('fetch', (event) => {
+  // Use a different strategy for API requests vs static assets
+  if (event.request.url.includes('/inventory') || event.request.url.includes('/change-csv')) {
+    // Network first strategy for API requests
     event.respondWith(
-        caches.match(event.request).then((response) => {
-            // Cache hit - return the response from cache
-            if(response){
-                return response;
-            }
-            // Not in cache - return the result from the fetch request
-            // and add the response to the cache for future use
-
-            return fetch(event.request).then((networkResponse) => {
-                if (event.request.url.startsWith('http')) {
-                    return caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, networkResponse.clone());
-                        return networkResponse;
-                    });
-                }
-                return networkResponse;
-            });
-
-            /*
-            return fetch(event.request).then((response) => {
-                if(!response || response.status !== 200 || response.type !== 'basic'){
-                    return response;
-                }
-                const responseToCache = response.clone();
+        fetch(event.request)
+        .then((response) =>{
+            if(response.status===200){
                 caches.open(CACHE_NAME).then((cache) =>{
-                    cache.put(event.request, responseToCache);
+                    cache.put(event.request, response.clone());
                 });
-                return response;
-            });
-            */
-        }).catch(() =>{
-            //fallback to cache or default response for offline
-            return caches.match('.index.html');
+            }
+            return response;
+        })
+        .catch(()=>{
+            return caches.match(event.request);
         })
     );
+    } else{
+        event.respondWith(
+            caches.match(event.request).then((response) =>{
+                return response || fetch(event.request);
+            })
+        );
+    }
 });
 
 //Active event
@@ -64,7 +54,7 @@ self.addEventListener('activate', (event) =>{
         caches.keys().then((cacheNames) =>{
             return Promise.all(
                 cacheNames.map((cacheName) =>{
-                    if(cacheWhitelist.indexOf(cacheName) === -1){
+                    if(!cacheWhitelist.includes(cacheName)){
                         return caches.delete(cacheName);
                     }
                 })

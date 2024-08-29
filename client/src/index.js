@@ -10,6 +10,20 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/service-worker.js').then(
       (registration) =>{
         console.log('Service Worker registered with scope:', registration.scope);
+        registration.onupdatefound = () =>{
+          const installingWorker = registration.installing;
+          installingWorker.onstatechange = () => {
+            if(installingWorker.state === 'installed'){
+              if(navigator.serviceWorker.controller){
+                //new update available
+                console.log('New content is available; please refresh.');
+                window.location.reload();
+              }else{
+                console.log('Content is cached for offline use.');
+              }
+            }
+          }
+        }
       },
       (error) =>{
         console.log('Service Worker registration failed:', error);
