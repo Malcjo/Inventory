@@ -1,9 +1,10 @@
-const CACHE_NAME = 'inventory-cache-v1';
+const CACHE_NAME = 'inventory-cache-v2';
 const urlsToCache = [
     '/',
     '/index.html',
     '/boxes.png',
     '/manifest.json',
+    '/favicon.ico',
 ];
 
 //Install event
@@ -26,6 +27,18 @@ self.addEventListener('fetch', (event) => {
             }
             // Not in cache - return the result from the fetch request
             // and add the response to the cache for future use
+
+            return fetch(event.request).then((networkResponse) => {
+                if (event.request.url.startsWith('http')) {
+                    return caches.open(CACHE_NAME).then((cache) => {
+                        cache.put(event.request, networkResponse.clone());
+                        return networkResponse;
+                    });
+                }
+                return networkResponse;
+            });
+
+            /*
             return fetch(event.request).then((response) => {
                 if(!response || response.status !== 200 || response.type !== 'basic'){
                     return response;
@@ -36,6 +49,10 @@ self.addEventListener('fetch', (event) => {
                 });
                 return response;
             });
+            */
+        }).catch(() =>{
+            //fallback to cache or default response for offline
+            return caches.match('.index.html');
         })
     );
 });
