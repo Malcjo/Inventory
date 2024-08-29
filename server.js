@@ -15,24 +15,38 @@ const csvFilePath = 'inventory.csv';
 let inventory = [];
 
 //load csv data into memory
-const loadCSVData = () =>{
-    inventory = [];
+const loadCSVData = () => {
+    inventory = []; 
     fs.createReadStream(csvFilePath)
-        .pipe(csvParser())
-        .on('data', (data) => inventory.push(data))
-        .on('end', () =>{
-            console.log('CSV loaded into memory');
-        });
-};
+      .pipe(csvParser())
+      .on('data', (data) => {
+        // Check if each row has valid data for ID, Name, and Quantity
+        if (data.ID && data.Name && data.Quantity) {
+          // Convert quantity to a number if necessary
+          data.Quantity = Number(data.Quantity);
+          inventory.push(data);
+          console.log('Loaded item:', data);
+        }
+        else{
+            console.log('Skipped invalid row:', data);
+        }
+      })
+      .on('end', () => {
+        console.log('CSV loaded into memory.', inventory);
+      })
+      .on('error', (error) => {
+        console.error('Error loading CSV file:', error);
+      });
+  };
 
 //Update CSV File
 const updateCSVFile = () =>{
     const CSVWriter = createCsvWriter({
         path: csvFilePath,
         header: [
-            {id: 'id', title: 'ID'},
-            {id: 'name', title: 'Name'},
-            {id: 'quantity', title: 'Quantity'},
+            {id: 'ID', title: 'ID'},
+            {id: 'Name', title: 'Name'},
+            {id: 'Quantity', title: 'Quantity'},
         ],
     });
 
@@ -51,9 +65,9 @@ app.get('/inventory', (req, res) =>{
 
 app.post('/inventory', (req, res) => {
     const newItem = {
-        id: Date.now().toString(),
-        name: req.body.name,
-        quantity: req.body.quantity,
+        ID: Date.now().toString(),
+        Name: req.body.name,
+        Quantity: req.body.quantity,
     };
 
     inventory.push(newItem);
@@ -62,6 +76,24 @@ app.post('/inventory', (req, res) => {
     res.status(201).json(newItem);
 });
 
+app.delete('/inventory/:id', (req, res) =>{ 
+    const itemId = req.params.id;
+    const itemIndex = inventory.findIndex(item => item.ID === itemId);
+    
+    if(itemIndex !== -1){
+        //Remove the item from the inventory array
+        inventory.splice(itemIndex, 1);
+
+        //Update the csv file after deletionn
+        updateCSVFile();
+
+        res.status(200).json({ message: 'Item deleted successfully'});
+    } else {
+        res.status(404).json({ message: 'Item not found'});
+    }
+});
+
 app.listen(5000, () =>{
     console.log('Server running on port 5000');
 })
+

@@ -25,6 +25,24 @@ const App = () =>{
       fetchInventory();//reload inventory after adding
     }
   };
+
+  const deleteItem = async (itemId) =>{
+    try {
+      console.log('Deleting item with ID: ', itemId);
+      const response = await fetch(`http://localhost:5000/inventory/${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok){
+        console.log(`Item ${itemId} successfully deleted!`);
+        fetchInventory(); //reload the inventory after deletion
+      } else{
+        console.error('failed to delete item', itemId);
+      }
+    } catch (error) {
+      console.error('failed to delete item: ', error);
+    }
+  }
   useEffect(() =>{
     fetchInventory();
   }, []);
@@ -32,7 +50,7 @@ const App = () =>{
     <div className='App'>
       <h1> Iventory managament system</h1>
       <AddItemForm onAddItem={addItem}/>
-      <InventoryList inventory={inventory} />
+      <InventoryList inventory={inventory} onDeleteItem={deleteItem} />
     </div>
   );
 };
