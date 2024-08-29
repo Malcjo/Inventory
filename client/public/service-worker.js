@@ -1,0 +1,1 @@
+const CACHE_NAME = 'inventory-cache-v1';

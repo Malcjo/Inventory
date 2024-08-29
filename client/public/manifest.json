@@ -1,0 +1,16 @@
+{
+    "short_name": "Inventory",
+    "name": "Inventory Management System",
+    "icons": [
+      {
+        "src": "icons/boxes.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      }
+    ],
+    "start_url": "./",
+    "display": "standalone",
+    "theme_color": "#000000",
+    "background_color": "#ffffff"
+  }
+  
