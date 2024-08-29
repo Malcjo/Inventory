@@ -4,6 +4,20 @@ import './index.css';
 import App from './App';
 import 'bootstrap/dist/css/bootstrap.css';
 
+//Register the service worker for offline capabilities
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () =>{
+    navigator.serviceWorker.register('/service-worker.js').then(
+      (registration) =>{
+        console.log('Service Worker registered with scope:', registration.scope);
+      },
+      (error) =>{
+        console.log('Service Worker registration failed:', error);
+      }
+    );
+  });
+}
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
