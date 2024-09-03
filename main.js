@@ -1,6 +1,25 @@
 const {app, BrowserWindow} = require('electron');
 const path = require('path');
 const {exec} = require('child_process');
+const net = require('net');
+
+function checkPortInUse(port, callback) {
+    const server = net.createServer((socket) => {
+      socket.write('Echo server\r\n');
+      socket.pipe(socket);
+    });
+  
+    server.on('error', (err) => {
+      callback(true);
+    });
+  
+    server.on('listening', () => {
+      server.close();
+      callback(false);
+    });
+  
+    server.listen(port, '127.0.0.1');
+  }
 
 function createWindow(){
     //create the browser window
@@ -24,24 +43,31 @@ function createWindow(){
     mainWindow.webContents.openDevTools();
 
     //start express server
-    const serverProcess = exec('node server.js', {cwd: __dirname});
+    checkPortInUse(5000,(inuse) =>{
+        if(!inuse){
+            const serverProcess = exec('node server.js', {cwd: __dirname});
 
-serverProcess.stdout.on('data', (data) =>{
-    console.log(`Server:${data}`);
-});
-
-serverProcess.stderr.on('data', (data) =>{
-    console.error(`Server Error:  ${data}`);
-});
-
-serverProcess.on('close', (code) =>{
-    console.log(`Server process exited with code ${code}`);
-});
-
-mainWindow.on('closed', () =>{
-    serverProcess.kill();
-});
-
+            serverProcess.stdout.on('data', (data) =>{
+                console.log(`Server:${data}`);
+            });
+            
+            serverProcess.stderr.on('data', (data) =>{
+                console.error(`Server Error:  ${data}`);
+            });
+            
+            serverProcess.on('close', (code) =>{
+                console.log(`Server process exited with code ${code}`);
+            });
+            
+            mainWindow.on('closed', () =>{
+                serverProcess.kill();
+            });
+            
+        }
+        else{
+            console.log("Server already running on port 5000");
+        }
+    });
 }
 
 

@@ -13,7 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let csvFilePath = 'uploads/inventory.csv';
+let csvFilePath = 'inventory.csv';
 let inventory = [];
 
 //configure multer for file uploads
@@ -93,7 +93,8 @@ app.post('/change-csv', upload.single('csvFile'), (req,res) =>{
         return res.status(400).json({message: 'No File uploaded'});
     }
 
-    csvFilePath = path.join(__dirname, req.file.path);
+    csvFilePath = path.resolve(req.file.path);
+    //csvFilePath = path.join(__dirname, req.file.path);
 
     loadCSVData();
     res.status(200).json({message: 'CSV file path updated'});
@@ -136,4 +137,9 @@ app.delete('/inventory/:id', (req, res) =>{
 app.listen(5000, () =>{
     console.log('Server running on port 5000');
 })
-
+/*
+app.post('/restart-server', (req, res) => {
+    console.log('Restarting server...');
+    process.exit(0); // This will make the server process exit
+  });
+*/
