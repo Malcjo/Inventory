@@ -10,6 +10,8 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('/service-worker.js').then(
       (registration) =>{
         console.log('Service Worker registered with scope:', registration.scope);
+
+        // check for updates to the service worker
         registration.onupdatefound = () =>{
           const installingWorker = registration.installing;
           installingWorker.onstatechange = () => {
@@ -19,6 +21,7 @@ if('serviceWorker' in navigator){
                 console.log('New content is available; please refresh.');
                 window.location.reload();
               }else{
+                //content is cached for offline use
                 console.log('Content is cached for offline use.');
               }
             }

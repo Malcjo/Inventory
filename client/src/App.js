@@ -11,16 +11,20 @@ const App = () =>{
   const handleFileChange = async (event) =>{
     const file = event.target.files[0];
     if(file){
-      const filePath = file.path;
-      setCsvFilePath(filePath);
+      console.log('Selected file path:' , file);
+
+      const formData = new FormData();
+      formData.append('csvFile', file);
+
+      //const filePath = file.path;
+      //setCsvFilePath(filePath);
+
       try {
         const response = await fetch('http://localhost:5000/change-csv', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({filePath}),
+          body: formData,
         });
+        
         if (!response.ok) {
           throw new Error(`Failed to update CSV file path: ${response.status}`);
         }

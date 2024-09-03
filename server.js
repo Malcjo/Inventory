@@ -1,9 +1,11 @@
 const express = require('express');
 const fs = require('fs'); //built in filesystem with node.js
 const path = require('path');
+const multer = require('multer');
 const csvParser = require('csv-parser');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const cors = require('cors'); //Cross origin resourse sharing
+const { error } = require('console');
 //const { CsvWriter } = require('csv-writer/src/lib/csv-writer');
 
 console.log('starting server');
@@ -14,8 +16,18 @@ app.use(express.json());
 let csvFilePath = 'inventory.csv';
 let inventory = [];
 
+//configure multer for file uploads
+const upload = multer({dest: 'uploads/ '});
+
 //load csv data into memory
 const loadCSVData = () => {
+
+    if(!csvFilePath){
+        console.error("CSV file path is not defined");
+        return;
+    }
+    
+    console.log("loading CSV file from file path", csvFilePath);
     inventory = []; 
     fs.createReadStream(csvFilePath)
       .pipe(csvParser())
@@ -52,15 +64,26 @@ const updateCSVFile = () =>{
 
     CSVWriter.writeRecords(inventory).then(() =>{
         console.log('CSV file has been update');
+    }).catch(error =>{
+        console.error("error updating CSV file: ", error)
     });
 };
 
-loadCSVData();
+//loadCSVData();
 
 // Get all inventory items
 
-app.post('/change-csv', (req,res) =>{
-    csvFilePath = req.body.filePath;
+// endpoint to change the csv file path or upload a new csv
+
+
+app.post('/change-csv', upload.single('csvFile'), (req,res) =>{
+    if(!req.file){
+        console.error("No CSV file path provided!");
+        return res.status(400).json({message: 'No File uploaded'});
+    }
+
+    csvFilePath = path.join(__dirname, req.file.path);
+    
     loadCSVData();
     res.status(200).json({message: 'CSV file path updated'});
 });
