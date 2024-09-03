@@ -4,6 +4,7 @@ import './index.css';
 import App from './App';
 import 'bootstrap/dist/css/bootstrap.css';
 
+/*
 //Register the service worker for offline capabilities
 if('serviceWorker' in navigator){
   window.addEventListener('load', () =>{
@@ -34,6 +35,7 @@ if('serviceWorker' in navigator){
     );
   });
 }
+*/
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

@@ -13,11 +13,20 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let csvFilePath = 'inventory.csv';
+let csvFilePath = 'uploads/inventory.csv';
 let inventory = [];
 
 //configure multer for file uploads
-const upload = multer({dest: 'uploads/ '});
+const storage = multer.diskStorage({
+    destination: (req,file, cb) =>{
+        cb(null, 'uploads/');
+    },
+    filename: (req,file, cb)=>{
+        cb(null,file.originalname);// save file with original name
+    }
+});
+
+const upload = multer({storage: storage});
 
 //load csv data into memory
 const loadCSVData = () => {
@@ -32,8 +41,10 @@ const loadCSVData = () => {
     fs.createReadStream(csvFilePath)
       .pipe(csvParser())
       .on('data', (data) => {
+
         // Check if each row has valid data for ID, Name, and Quantity
         if (data.ID && data.Name && data.Quantity) {
+
           // Convert quantity to a number if necessary
           data.Quantity = Number(data.Quantity);
           inventory.push(data);
@@ -69,7 +80,7 @@ const updateCSVFile = () =>{
     });
 };
 
-//loadCSVData();
+loadCSVData();
 
 // Get all inventory items
 
@@ -83,7 +94,7 @@ app.post('/change-csv', upload.single('csvFile'), (req,res) =>{
     }
 
     csvFilePath = path.join(__dirname, req.file.path);
-    
+
     loadCSVData();
     res.status(200).json({message: 'CSV file path updated'});
 });
