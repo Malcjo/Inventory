@@ -1,120 +1,102 @@
-const express = require('express');
-const fs = require('fs'); 
-const path = require('path');
-const multer = require('multer');
-const csvParser = require('csv-parser');
-const createCsvWriter = require('csv-writer').createObjectCsvWriter;
-const cors = require('cors'); 
+import React, { useState, useEffect} from 'react';
+import InventoryList from './components/InventoryList';
+import AddItemForm from './components/AddItemForm';
 
-console.log('starting server');
-const app = express();
-app.use(cors());
-app.use(express.json());
 
-let csvFilePath = 'inventory.csv';
-let inventory = [];
+const App = () =>{
+  const [inventory, setInventory] = useState([]);
+  const [csvFilePath, setCsvFilePath] = useState('inventory.csv');
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  },
-});
 
-const upload = multer({ storage: storage });
+  const handleFileChange = async (event) =>{
+    const file = event.target.files[0];
+    if(file){
+      console.log('Selected file path:' , file);
 
-const loadCSVData = () => {
-  if (!csvFilePath) {
-    console.error('CSV file path is not defined');
-    return;
-  }
+      const formData = new FormData();
+      formData.append('csvFile', file);
 
-  console.log('loading CSV file from file path', csvFilePath);
-  inventory = [];
-  fs.createReadStream(csvFilePath)
-    .pipe(csvParser())
-    .on('data', (data) => {
-      if (data.ID && data.Name && data.Quantity) {
-        data.Quantity = Number(data.Quantity);
-        inventory.push(data);
-        console.log('Loaded item:', data);
-      } else {
-        console.log('Skipped invalid row:', data);
+      //const filePath = file.path;
+      //setCsvFilePath(filePath);
+
+      try {
+        const response = await fetch('http://localhost:5000/change-csv', {
+          method: 'POST',
+          body: formData,
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to update CSV file path: ${response.status}`);
+        }
+        fetchInventory();
+      } catch (error) {
+        console.error('Failed to update CSV file path:', error);
       }
-    })
-    .on('end', () => {
-      console.log('CSV loaded into memory.', inventory);
-    })
-    .on('error', (error) => {
-      console.error('Error loading CSV file:', error);
-    });
-};
-
-const updateCSVFile = () => {
-  const CSVWriter = createCsvWriter({
-    path: csvFilePath,
-    header: [
-      { id: 'ID', title: 'ID' },
-      { id: 'Name', title: 'Name' },
-      { id: 'Quantity', title: 'Quantity' },
-    ],
-  });
-
-  CSVWriter.writeRecords(inventory)
-    .then(() => {
-      console.log('CSV file has been updated');
-    })
-    .catch((error) => {
-      console.error('error updating CSV file: ', error);
-    });
-};
-
-loadCSVData();
-
-app.post('/change-csv', upload.single('csvFile'), (req, res) => {
-  if (!req.file) {
-    console.error('No CSV file path provided!');
-    return res.status(400).json({ message: 'No File uploaded' });
-  }
-
-  csvFilePath = path.resolve(req.file.path);
-
-  loadCSVData();
-  res.status(200).json({ message: 'CSV file path updated' });
-});
-
-app.get('/inventory', (req, res) => {
-  res.json(inventory);
-});
-
-app.post('/inventory', (req, res) => {
-  const newItem = {
-    ID: Date.now().toString(),
-    Name: req.body.name,
-    Quantity: req.body.quantity,
+    }
   };
 
-  inventory.push(newItem);
-  updateCSVFile();
+  const fetchInventory = async () =>{
+    try {
+      const response = await fetch('http://localhost:5000/inventory');
+      if(!response.ok){
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setInventory(data);
+    } catch (error) {
+      console.error('Failed to fetch inventory:', error);
+    }
+  };
+  const addItem = async (item) =>{
+    try {
+      const response = await fetch('http://localhost:5000/inventory', {
+        method: 'POST',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(item),
+      });
+      
+      if(response.ok){
+        fetchInventory();//reload inventory after adding
+      }
+      else{
+        console.error('Failed to add item');
+      }
+    } catch (error) {
+      console.error('Failed to add item:', error);
+    }
 
-  res.status(201).json(newItem);
-});
+  };
 
-app.delete('/inventory/:id', (req, res) => {
-  const itemId = req.params.id;
-  const itemIndex = inventory.findIndex((item) => item.ID === itemId);
+  const deleteItem = async (itemId) =>{
+    try {
+      console.log('Deleting item with ID: ', itemId);
+      const response = await fetch(`http://localhost:5000/inventory/${itemId}`, {
+        method: 'DELETE',
+      });
 
-  if (itemIndex !== -1) {
-    inventory.splice(itemIndex, 1);
-    updateCSVFile();
-    res.status(200).json({ message: 'Item deleted successfully' });
-  } else {
-    res.status(404).json({ message: 'Item not found' });
+      if (response.ok){
+        console.log(`Item ${itemId} successfully deleted!`);
+        fetchInventory(); //reload the inventory after deletion
+      } else{
+        console.error('failed to delete item', itemId);
+      }
+    } catch (error) {
+      console.error('failed to delete item: ', error);
+    }
   }
-});
+  useEffect(() =>{
+    fetchInventory();
+  }, [csvFilePath]); //reload inventory when csv file path changes
+  return(
+    <div className='App'>
+      <h1> Inventory managament system</h1>
+      <input type="file" accept=".csv" onChange={handleFileChange} />
+      <AddItemForm onAddItem={addItem}/>
+      <InventoryList inventory={inventory} onDeleteItem={deleteItem} />
+    </div>
+  );
+};
 
-app.listen(5000, () => {
-  console.log('Server running on port 5000');
-});
+export default App;
