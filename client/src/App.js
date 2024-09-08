@@ -5,6 +5,7 @@ import AddItemForm from './components/AddItemForm';
 const App = () => {
   const [inventory, setInventory] = useState([]);
   const [error, setError] = useState(null);
+  const [newQuantity, setNewQuantity] = useState();
 
   // Function to fetch inventory from the server
   const fetchInventory = async () => {
@@ -69,6 +70,37 @@ const App = () => {
     }
   };
 
+  const handleQuantityChange = (e, id) =>{
+    console.log('id:', id);
+    console.log('value: ', e.target.value)
+    setNewQuantity({
+      ...newQuantity,//spread operator, copies all existing values from newQuantity state
+      [id]: e.target.value//bracket notation dynamically setting a new key-value pair [id] is key, e.target.value is value
+    });
+  };
+
+  const updateItemQuantity = async (id) =>{
+    try {
+      const response = await fetch(`http://localhost:5000/inventory/${id}`, {
+        method: 'PUT',
+        headers:{
+          'Content-type':'application/json',        
+        },
+        body: JSON.stringify({qantity: newQuantity[id]})
+      });
+
+      if(response.ok){
+        fetchInventory();
+      }
+      else{
+        console.error('Failed to update Item');
+      }
+
+    } catch (error) {
+      console.error('Failed to update item: ', error);
+    }
+  };
+
   // Function to delete an item from the inventory
   const deleteItem = async (itemId) => {
     try {
@@ -98,8 +130,15 @@ const App = () => {
       <h1>Inventory Management System</h1>
       <input type="file" accept=".csv" onChange={handleFileChange} />
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <AddItemForm onAddItem={addItem} />
-      <InventoryList inventory={inventory} onDeleteItem={deleteItem} />
+      <AddItemForm 
+      onAddItem={addItem} />
+      
+      <InventoryList 
+      inventory={inventory} 
+      onDeleteItem={deleteItem}
+      handleQuantityChange={handleQuantityChange}
+      updateItemQuantity={updateItemQuantity}
+      />
     </div>
   );
 };

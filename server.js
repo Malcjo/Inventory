@@ -72,6 +72,8 @@ const updateCSVFile = () => {
     });
 };
 
+
+
 loadCSVData();
 
 app.post('/change-csv', upload.single('csvFile'), (req, res) => {
@@ -100,6 +102,25 @@ app.post('/inventory', (req, res) => {
     updateCSVFile();
 
     res.status(201).json(newItem);
+});
+
+app.put('inventory/:id', (req,res) =>{
+    const itemId = String(req.params.id);
+    const newQuantity = req.body.quantity;//extract the quantity from request body
+
+    const itemIndex = inventory.findIndex(item => item.ID === itemId);
+
+    if(itemIndex !== -1){
+        inventory[itemIndex].Quantity = newQuantity;//update the quanitiy
+
+
+        updateCSVFile();//Persist the update to the CSV file
+
+        res.status(200).json({message: "Quantity updated successfully"});
+    }
+    else{
+        res.status(404).json({message: "Item no found"});
+    }
 });
 
 app.delete('/inventory/:id', (req, res) => {
