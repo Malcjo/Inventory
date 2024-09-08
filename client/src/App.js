@@ -79,14 +79,14 @@ const App = () => {
     });
   };
 
-  const updateItemQuantity = async (id) =>{
+  const updateItemQuantity = async (itemId) =>{
     try {
-      const response = await fetch(`http://localhost:5000/inventory/${id}`, {
+      const response = await fetch(`http://localhost:5000/inventory/${itemId}`, {
         method: 'PUT',
         headers:{
           'Content-type':'application/json',        
         },
-        body: JSON.stringify({qantity: newQuantity[id]})
+        body: JSON.stringify({qantity: newQuantity[itemId]})
       });
 
       if(response.ok){
