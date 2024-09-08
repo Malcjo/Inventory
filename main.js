@@ -3,6 +3,7 @@ const path = require('path');
 const { exec } = require('child_process');
 const net = require('net');
 
+
 let serverProcess;
 
 function checkPortInUse(port, callback) {
@@ -106,8 +107,36 @@ function createWindow() {
 
 app.on('ready', createWindow);
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV === 'development';
+app.on('will-quit', (event) =>{
+    if(isDev){
+        console.log("App is quitting in development mode");
+        console.log("Stopping server before app closes");
 
+        event.preventDefault();
+    
+            // Run the kill-port command for port 5000
+            exec('npx kill-port 5000', (err, stdout, stderr) => {
+                if (err) {
+                    console.error(`Error killing port 5000: ${err.message}`);
+                } else {
+                    console.log(`Port 5000 successfully killed`);
+                    console.log(`stdout: ${stdout}`);
+                    console.log(`stderr: ${stderr}`);
+                }
+        
+                // Allow the app to quit after the command completes
+                app.quit();
+            });
+    }
+    else{
+        console.log("App is quitting in production mode");
+    }
 
+});
+
+/*
 // Ensure the server is stopped before quitting
 app.on('before-quit', () => {
     console.log("stopping server before app close");
@@ -124,6 +153,7 @@ app.on('before-quit', () => {
     });
     console.log("Finished killing port 5000");
 
+    
     /*
     find('port', 5000)
     .then(() =>{
@@ -142,8 +172,9 @@ app.on('before-quit', () => {
     .catch((err) => {
         console.error('Error finding process:', err);
     });
-    */
+    
 });
+*/
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
