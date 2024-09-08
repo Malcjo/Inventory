@@ -2,7 +2,6 @@ const { app, BrowserWindow } = require('electron');
 const path = require('path');
 const { exec } = require('child_process');
 const net = require('net');
-const find = require('find-process');
 
 let serverProcess;
 
@@ -113,16 +112,37 @@ app.on('ready', createWindow);
 app.on('before-quit', () => {
     console.log("stopping server before app close");
     //stopServer();
+
+    exec('npx kill-port 5000', (err, stdout, stderr) => {
+        if(err){
+            console.log(`Error killing port 5000: ${err.message}`);
+            return;
+        }
+        console.log(`Port 5000 successfully killed`);
+        console.log(`stdout: ${stdout}`);
+        console.log(`stderr: ${stderr}`);
+    });
+    console.log("Finished killing port 5000");
+
+    /*
     find('port', 5000)
-        .then((list) => {
-            if (list[0] != null) { // If there is a process using port 5000
-                console.log(`Killing process on port 5000: PID ${list[0].pid}`);
-                process.kill(list[0].pid, 'SIGHUP'); // Gracefully kill the process
-            }
-        })
-        .catch((err) => {
-            console.error('Error finding process:', err);
-        });
+    .then(() =>{
+        console.log("found port 5000");
+    })
+    .then((list) => {
+        console.log("found port 5000 list");
+        if (list.length > 0) { // If there is a process using port 5000
+            console.log(`Killing process on port 5000: PID ${list[0].pid}`);
+            process.kill(list[0].pid, 'SIGHUP'); // Gracefully kill the process
+        }
+        else{
+            console.log("couldn't kill port 5000");
+        }
+    })
+    .catch((err) => {
+        console.error('Error finding process:', err);
+    });
+    */
 });
 
 app.on('window-all-closed', () => {
