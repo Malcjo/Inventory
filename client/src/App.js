@@ -5,7 +5,7 @@ import AddItemForm from './components/AddItemForm';
 const App = () => {
   const [inventory, setInventory] = useState([]);
   const [error, setError] = useState(null);
-  const [newQuantity, setNewQuantity] = useState();
+  const [newQuantity, setNewQuantity] = useState({});
 
   // Function to fetch inventory from the server
   const fetchInventory = async () => {
@@ -70,6 +70,7 @@ const App = () => {
     }
   };
 
+  /*
   const handleQuantityChange = (e, id) =>{
     console.log('id:', id);
     console.log('value: ', e.target.value)
@@ -78,19 +79,29 @@ const App = () => {
       [id]: e.target.value//bracket notation dynamically setting a new key-value pair [id] is key, e.target.value is value
     });
   };
+  */
 
-  const updateItemQuantity = async (itemId) =>{
+  const updateItemQuantity = async (itemId, amount, isCustom = false) =>{
+    const itemIndex = inventory.findIndex(item => item.ID === itemId);
+    let updatedItem;
+    if(itemIndex !== -1){
+      updatedItem = {...inventory[itemIndex]};
+      updatedItem.Quantity = isCustom ? amount : updatedItem.Quantity + amount;
+    }
+
     try {
       const response = await fetch(`http://localhost:5000/inventory/${itemId}`, {
         method: 'PUT',
         headers:{
           'Content-type':'application/json',        
         },
-        body: JSON.stringify({quantity: newQuantity[itemId] }),
+        body: JSON.stringify({quantity: updatedItem.Quantity}),
       });
 
       if(response.ok){
-        fetchInventory();
+        const updatedInventory = [...inventory];
+        updatedInventory[itemIndex] = updatedItem;
+        setInventory(updatedInventory);
       }
       else{
         console.error('Failed to update Item');
@@ -136,7 +147,6 @@ const App = () => {
       <InventoryList 
       inventory={inventory} 
       onDeleteItem={deleteItem}
-      handleQuantityChange={handleQuantityChange}
       updateItemQuantity={updateItemQuantity}
       />
     </div>
