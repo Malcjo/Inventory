@@ -1,10 +1,47 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const path = require('path');
 const { exec } = require('child_process');
 const net = require('net');
 
+const fs = require('fs');
 
 let serverProcess;
+
+function saveCSVFile(data){
+    const savePath = dialog.showSaveDialogSync({
+        title: 'Save inventory CSV',
+        defaultPath: 'inventory.csv',
+        filters:[
+            {name:'CSV Files,', extensions:['CSV']}
+        ]
+    });
+
+    if(savePath){
+        fs.writeFileSync(savePath, data, 'utf-8');
+        console.log(`CSV file saved at: ${savePath}`);
+    }
+    else{
+        console.log('Save canceled or no file selected');
+    }
+}
+
+function openCSVFile() {
+    const filePaths = dialog.showOpenDialogSync({
+        title: 'Select CSV File',
+        properties: ['openFile'],
+        filters: [{ name: 'CSV Files', extensions: ['csv'] }]
+    });
+
+    if (filePaths && filePaths[0]) {
+        const filePath = filePaths[0];
+        const csvData = fs.readFileSync(filePath, 'utf-8');
+        console.log(`CSV file opened from: ${filePath}`);
+        // Send the CSV data back to the renderer process (React) for further processing
+    } else {
+        console.log('Open file operation canceled');
+    }
+}
+
 
 function checkPortInUse(port, callback) {
 
@@ -187,3 +224,14 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+//save CSV file when triggered by renderer
+ipcMain.on('save-csv', (event, data) =>{
+    saveCSVFile(data);
+});
+
+//open CSV file when trigered by renderer
+ipcMain.handle('open-csv', async (event) =>{
+    const csvData = openCSVFile();
+    return csvData;
+})

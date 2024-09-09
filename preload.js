@@ -19,3 +19,8 @@ contextBridge.exposeInMainWorld('api', {
         }
     }
 });
+
+contextBridge.exposeInMainWorld('electronAPI', {
+    saveCSV: (data) => ipcRenderer.send('save-csv', data),
+    openCSV: () => ipcRenderer.invoke('open-csv').then(result => result)
+});

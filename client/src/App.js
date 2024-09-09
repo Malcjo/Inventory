@@ -7,6 +7,26 @@ const App = () => {
   const [error, setError] = useState(null);
   const [newQuantity, setNewQuantity] = useState({});
 
+
+  const handleSaveCSV = () =>{
+    const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
+
+    window.electronAPI.saveCSV(csvData);
+  }
+
+  const handleOpenCSV = () =>{
+    window.electronAPI.openCSV().then(data =>{
+      if(data){
+        const parsedData = data.split('\n').map(row =>{
+          const [ID, Name, Quantity] = row.split(',');
+          return {ID, Name, Quantity: parseInt(Quantity, 10) };
+        });
+
+        setInventory(parsedData);
+        console.log('Loaded CSV data:', parsedData);
+      }
+    });
+  };
   // Function to fetch inventory from the server
   const fetchInventory = async () => {
     try {
@@ -139,10 +159,11 @@ const App = () => {
   return (
     <div className="App">
       <h1>Inventory Management System</h1>
-      <input type="file" accept=".csv" onChange={handleFileChange} />
+      <input type="file" accept=".csv" onChange={handleOpenCSV} />
+      <button onClick={handleSaveCSV}>Save CSV</button>
+
       {error && <p style={{ color: 'red' }}>{error}</p>}
-      <AddItemForm 
-      onAddItem={addItem} />
+      <AddItemForm onAddItem={addItem} />
       
       <InventoryList 
       inventory={inventory} 
