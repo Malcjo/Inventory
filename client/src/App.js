@@ -86,7 +86,7 @@ const App = () => {
         headers:{
           'Content-type':'application/json',        
         },
-        body: JSON.stringify({qantity: newQuantity[itemId]})
+        body: JSON.stringify({quantity: newQuantity[itemId] }),
       });
 
       if(response.ok){

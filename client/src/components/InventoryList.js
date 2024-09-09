@@ -1,6 +1,6 @@
 import React from "react";
 
-const InventoryList =({inventory, onDeleteItem, handleQuantityChange ,updateItemQuantity}) =>{
+const InventoryList =({inventory, onDeleteItem, handleQuantityChange ,updateItemQuantity, newQuantity}) =>{
     //log the inventory data being rendered
     console.log('Rendering Inventroy List:  ', inventory);
     return(
@@ -13,6 +13,7 @@ const InventoryList =({inventory, onDeleteItem, handleQuantityChange ,updateItem
                     - Quantity:
                     <input
                         type = "number"
+                        //value ={newQuantity[item.ID] !== undefined ? newQuantity[item.ID] : item.Quantity}
                         value ={item.Quantity}
                         onChange={(e) => handleQuantityChange(e, item.ID)}
                     />
