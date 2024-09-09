@@ -20,7 +20,8 @@ contextBridge.exposeInMainWorld('api', {
     }
 });
 
+// Expose an API for the React front-end to call
 contextBridge.exposeInMainWorld('electronAPI', {
-    saveCSV: (data) => ipcRenderer.send('save-csv', data),
-    openCSV: () => ipcRenderer.invoke('open-csv').then(result => result)
+    saveCSV: (data) => ipcRenderer.send('save-csv', data),  // Save CSV with or without a specified path
+    openCSV: () => ipcRenderer.invoke('open-csv').then(result => result)  // Open CSV functionality
 });

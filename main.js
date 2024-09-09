@@ -7,14 +7,18 @@ const fs = require('fs');
 
 let serverProcess;
 
-function saveCSVFile(data){
-    const savePath = dialog.showSaveDialogSync({
-        title: 'Save inventory CSV',
-        defaultPath: 'inventory.csv',
-        filters:[
-            {name:'CSV Files,', extensions:['CSV']}
-        ]
-    });
+function saveCSVFile({data, path}){
+    let savePath = path;
+
+    if(!savePath){
+        savePath = dialog.showSaveDialogSync({
+            title: 'Save inventory CSV',
+            defaultPath: 'inventory.csv',
+            filters:[
+                {name:'CSV Files,', extensions:['CSV']}
+            ]
+        });
+    }
 
     if(savePath){
         fs.writeFileSync(savePath, data, 'utf-8');
@@ -36,9 +40,10 @@ function openCSVFile() {
         const filePath = filePaths[0];
         const csvData = fs.readFileSync(filePath, 'utf-8');
         console.log(`CSV file opened from: ${filePath}`);
-        // Send the CSV data back to the renderer process (React) for further processing
+        return {data: csvData, path: filePath};
     } else {
         console.log('Open file operation canceled');
+        return { data: null, path: null};
     }
 }
 
@@ -173,45 +178,6 @@ app.on('will-quit', (event) =>{
 
 });
 
-/*
-// Ensure the server is stopped before quitting
-app.on('before-quit', () => {
-    console.log("stopping server before app close");
-    //stopServer();
-
-    exec('npx kill-port 5000', (err, stdout, stderr) => {
-        if(err){
-            console.log(`Error killing port 5000: ${err.message}`);
-            return;
-        }
-        console.log(`Port 5000 successfully killed`);
-        console.log(`stdout: ${stdout}`);
-        console.log(`stderr: ${stderr}`);
-    });
-    console.log("Finished killing port 5000");
-
-    
-    /*
-    find('port', 5000)
-    .then(() =>{
-        console.log("found port 5000");
-    })
-    .then((list) => {
-        console.log("found port 5000 list");
-        if (list.length > 0) { // If there is a process using port 5000
-            console.log(`Killing process on port 5000: PID ${list[0].pid}`);
-            process.kill(list[0].pid, 'SIGHUP'); // Gracefully kill the process
-        }
-        else{
-            console.log("couldn't kill port 5000");
-        }
-    })
-    .catch((err) => {
-        console.error('Error finding process:', err);
-    });
-    
-});
-*/
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -225,13 +191,14 @@ app.on('activate', () => {
     }
 });
 
+//~~~~~~~~~~~~~~~~~~~~~~IPCMAIN used for handling file opening and saving~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 //save CSV file when triggered by renderer
-ipcMain.on('save-csv', (event, data) =>{
-    saveCSVFile(data);
+ipcMain.on('save-csv', (event,{ data, path}) =>{
+    saveCSVFile({data, path});
 });
 
 //open CSV file when trigered by renderer
 ipcMain.handle('open-csv', async (event) =>{
-    const csvData = openCSVFile();
-    return csvData;
+    return openCSVFile();
 })

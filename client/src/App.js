@@ -5,24 +5,35 @@ import AddItemForm from './components/AddItemForm';
 const App = () => {
   const [inventory, setInventory] = useState([]);
   const [error, setError] = useState(null);
-  const [newQuantity, setNewQuantity] = useState({});
+  const [csvFilePath, setCsvFilePath] = useState(null);
 
 
   const handleSaveCSV = () =>{
-    const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
+    if(csvFilePath){
+      const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
 
-    window.electronAPI.saveCSV(csvData);
-  }
+      window.electronAPI.saveCSV({data: csvData, path:csvFilePath});
+    }
+    else{
+      console.error('No CSV file loaded to save.');
+    }
+  };
+
+  const handleSaveAsCSV = () => {
+    const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
+    window.electronAPI.saveCSV({ data: csvData });
+  };
 
   const handleOpenCSV = () =>{
-    window.electronAPI.openCSV().then(data =>{
-      if(data){
+    window.electronAPI.openCSV().then(({data, path}) =>{
+      if(data && path){
         const parsedData = data.split('\n').map(row =>{
           const [ID, Name, Quantity] = row.split(',');
           return {ID, Name, Quantity: parseInt(Quantity, 10) };
         });
 
         setInventory(parsedData);
+        setCsvFilePath(path);
         console.log('Loaded CSV data:', parsedData);
       }
     });
@@ -106,7 +117,8 @@ const App = () => {
     let updatedItem;
     if(itemIndex !== -1){
       updatedItem = {...inventory[itemIndex]};
-      updatedItem.Quantity = isCustom ? amount : updatedItem.Quantity + amount;
+      updatedItem.Quantity = isCustom ? parseInt(amount, 10) : (parseInt(updatedItem.Quantity, 10) + parseInt(amount, 10));
+      //parseInt(amount, 10) means "convert the amount string to an integer, interpreting it as a base-10 (decimal) number."
     }
 
     try {
@@ -161,6 +173,7 @@ const App = () => {
       <h1>Inventory Management System</h1>
       <input type="file" accept=".csv" onChange={handleOpenCSV} />
       <button onClick={handleSaveCSV}>Save CSV</button>
+      <button onClick={handleSaveAsCSV}>Save As CSV</button>
 
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <AddItemForm onAddItem={addItem} />
