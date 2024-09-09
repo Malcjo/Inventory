@@ -125,7 +125,7 @@ const App = () => {
   */
 
   const updateItemQuantity = async (itemId, amount, isCustom = false) =>{
-    const itemIndex = inventory.findIndex(item => item.ID === itemId);
+    const itemIndex = inventory.findIndex(item => parseInt(item.ID) === parseInt(itemId));
     let updatedItem;
     if(itemIndex !== -1){
       updatedItem = {...inventory[itemIndex]};
@@ -141,7 +141,7 @@ const App = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:5000/inventory/${itemId}`, {
+      const response = await fetch(`http://localhost:5000/inventory/${parseInt(itemId)}`, {
         method: 'PUT',
         headers:{
           'Content-type':'application/json',        

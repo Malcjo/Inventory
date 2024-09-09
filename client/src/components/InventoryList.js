@@ -40,7 +40,7 @@ const InventoryList =({inventory, onDeleteItem, handleQuantityChange ,updateItem
                     <button onClick={() => handleDecrement(item.ID)}>-</button>
                     <button onClick={() => handleIncrement(item.ID)}>+</button>
                     <button onClick={() => showCustomPopup(item.ID, item.Quantity)}>Enter Custom Value</button>
-                    //<button onClick={() => updateItemQuantity(item.ID)}>Confirm Update Quantity</button>
+                    {/*<button onClick={() => updateItemQuantity(item.ID)}>Confirm Update Quantity</button>*/}
                     <button onClick={() => onDeleteItem(item.ID)}>Delete</button>
                 </li>
                 ))}

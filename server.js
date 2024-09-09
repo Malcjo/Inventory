@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-let csvFilePath = 'inventory.csv';
+let csvFilePath = 'uploads/newInventory.csv';
 let inventory = [];
 
 // Configure multer for file uploads
@@ -35,11 +35,26 @@ const loadCSVData = () => {
 
     console.log("loading CSV file from file path", csvFilePath);
     inventory = [];
-    fs.createReadStream(csvFilePath)
+    let rowCount = 0;
+
+    if(fs.existsSync(csvFilePath)){
+        fs.createReadStream(csvFilePath)
         .pipe(csvParser())
         .on('data', (data) => {
+            rowCount++;
+            console.log('rowCount: ', rowCount);
+            console.log('Raw data row: ', data);
+
             // check if the row contans valid data
             if (data.ID && data.Name && data.Quantity) {
+                console.log(`Valid row detected: ID=${data.ID}, Name=${data.Name}, Quantity=${data.Quantity}`);
+                
+                if(!data.ID || data.ID.length < 10){
+                    console.log("ID is too short");
+                    data.ID = Date.now().toString(); 
+                    console.log('new id: ', data.ID);
+                }
+            
                 data.Quantity = Number(data.Quantity);
                 inventory.push(data);
                 console.log('Loaded item:', data);
@@ -53,6 +68,11 @@ const loadCSVData = () => {
         .on('error', (error) => {
             console.error('Error loading CSV file:', error);
         });
+    }
+
+
+
+
 };
 
 // Update CSV File
@@ -64,6 +84,7 @@ const updateCSVFile = () => {
             { id: 'Name', title: 'Name' },
             { id: 'Quantity', title: 'Quantity' },
         ],
+        append: fs.existsSync(csvFilePath),
     });
 
     const filteredInventory = inventory.filter(item => item.ID && item.Name && item.Quantity);
@@ -79,6 +100,7 @@ const updateCSVFile = () => {
     .catch(error => {
         console.error("error updating CSV file: ", error)
     });
+    loadCSVData();
 };
 
 
@@ -114,10 +136,10 @@ app.post('/inventory', (req, res) => {
 });
 
 app.put('/inventory/:id', (req,res) =>{
-    const itemId = String(req.params.id);
+    const itemId = parseInt(req.params.id);
     const newQuantity = req.body.quantity;//extract the quantity from request body
 
-    const itemIndex = inventory.findIndex(item => item.ID === itemId);
+    const itemIndex = inventory.findIndex(item => parseInt(item.ID) === itemId);
 
     if(itemIndex !== -1){
         console.log("item index != -1 ");
