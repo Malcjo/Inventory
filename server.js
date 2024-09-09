@@ -38,6 +38,7 @@ const loadCSVData = () => {
     fs.createReadStream(csvFilePath)
         .pipe(csvParser())
         .on('data', (data) => {
+            // check if the row contans valid data
             if (data.ID && data.Name && data.Quantity) {
                 data.Quantity = Number(data.Quantity);
                 inventory.push(data);
@@ -65,9 +66,17 @@ const updateCSVFile = () => {
         ],
     });
 
-    CSVWriter.writeRecords(inventory).then(() => {
+    const filteredInventory = inventory.filter(item => item.ID && item.Name && item.Quantity);
+
+    if(filteredInventory.length !== inventory.length){
+        console.log('Warning: Some invalid items were removed before saving.');
+    }
+
+    CSVWriter.writeRecords(filteredInventory)
+    .then(() => {
         console.log('CSV file has been updated');
-    }).catch(error => {
+    })
+    .catch(error => {
         console.error("error updating CSV file: ", error)
     });
 };

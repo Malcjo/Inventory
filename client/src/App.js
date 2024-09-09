@@ -10,7 +10,10 @@ const App = () => {
 
   const handleSaveCSV = () =>{
     if(csvFilePath){
-      const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
+      const csvData = inventory
+      .filter(item => item.ID && item.Name && item.Quantity !== null && item.Quantity !== undefined)
+      .map(item => `${item.ID},${item.Name},${item.Quantity}\n`)
+      .join('');
 
       window.electronAPI.saveCSV({data: csvData, path:csvFilePath});
     }
@@ -29,8 +32,11 @@ const App = () => {
       if(data && path){
         const parsedData = data.split('\n').map(row =>{
           const [ID, Name, Quantity] = row.split(',');
-          return {ID, Name, Quantity: parseInt(Quantity, 10) };
-        });
+          if(ID, Name,Quantity){
+            return {ID, Name, Quantity: parseInt(Quantity, 10) };
+          }
+          return null // Skip invalid rows
+        }).filter(item => item !== null);
 
         setInventory(parsedData);
         setCsvFilePath(path);
@@ -55,6 +61,7 @@ const App = () => {
   };
 
   // Function to handle file change for uploading a new CSV file
+  /*
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -79,9 +86,14 @@ const App = () => {
       }
     }
   };
+  */
 
   // Function to add a new item to the inventory
   const addItem = async (item) => {
+    if(!item.name || !item.quantity){
+      console.error('Invalid item: missing name or quantity.');
+      return;
+    }
     try {
       const response = await fetch('http://localhost:5000/inventory', {
         method: 'POST',
@@ -117,7 +129,14 @@ const App = () => {
     let updatedItem;
     if(itemIndex !== -1){
       updatedItem = {...inventory[itemIndex]};
-      updatedItem.Quantity = isCustom ? parseInt(amount, 10) : (parseInt(updatedItem.Quantity, 10) + parseInt(amount, 10));
+      const newQuantity = isCustom ? parseInt(amount, 10) : (parseInt(updatedItem.Quantity, 10) + parseInt(amount, 10));
+      
+      if(isNaN(newQuantity) || newQuantity <0){
+        console.error('Invalid quantity: ', newQuantity);
+        return;
+      }
+
+      updatedItem.Quantity = newQuantity;
       //parseInt(amount, 10) means "convert the amount string to an integer, interpreting it as a base-10 (decimal) number."
     }
 
@@ -171,7 +190,7 @@ const App = () => {
   return (
     <div className="App">
       <h1>Inventory Management System</h1>
-      <input type="file" accept=".csv" onChange={handleOpenCSV} />
+      <button onClick={handleOpenCSV} >Open CSV</button>
       <button onClick={handleSaveCSV}>Save CSV</button>
       <button onClick={handleSaveAsCSV}>Save As CSV</button>
 
