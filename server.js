@@ -5,6 +5,7 @@ const multer = require('multer');
 const csvParser = require('csv-parser');
 const createCsvWriter = require('csv-writer').createObjectCsvWriter;
 const cors = require('cors');
+const { CsvWriter } = require('csv-writer/src/lib/csv-writer');
 
 console.log('starting server');
 const app = express();
@@ -39,8 +40,9 @@ const loadCSVData = () => {
 
     if(fs.existsSync(csvFilePath)){
         fs.createReadStream(csvFilePath)
-        .pipe(csvParser())
-        .on('data', (data) => {
+            .pipe(csvParser())
+            .on('data', (data) => {
+            
             rowCount++;
             console.log('rowCount: ', rowCount);
             console.log('Raw data row: ', data);
@@ -61,6 +63,7 @@ const loadCSVData = () => {
             } else {
                 console.log('Skipped invalid row:', data);
             }
+            
         })
         .on('end', () => {
             console.log('CSV loaded into memory.', inventory);
@@ -69,11 +72,27 @@ const loadCSVData = () => {
             console.error('Error loading CSV file:', error);
         });
     }
-
-
-
-
+    else{
+        console.log("CSV file does not exist, intializin empty inventory.");
+    }
 };
+
+
+const updateOrAppendCSVFile = () =>{
+    const CSVWriter = createCsvWriter({
+        path: csvFilePath,
+        header: [
+            { id: 'ID', title: 'ID' },
+            { id: 'Name', title: 'Name' },
+            { id: 'Quantity', title: 'Quantity' },
+        ],
+        append: fs.existsSync(csvFilePath),
+    });
+
+    CsvWriter.writeRecords(inventory).then(() => {
+        console.log("CSV file updated or appended successfully")
+    })
+}
 
 // Update CSV File
 const updateCSVFile = () => {
@@ -130,8 +149,8 @@ app.post('/inventory', (req, res) => {
     };
 
     inventory.push(newItem);
+    //updateOrAppendCSVFile();
     updateCSVFile();
-
     res.status(201).json(newItem);
 });
 
@@ -155,6 +174,12 @@ app.put('/inventory/:id', (req,res) =>{
         res.status(404).json({message: "Item no found"});
     }
 });
+
+app.post('/save-blank-csv', (req, res) => {
+    fs.writeFileSync(csvFilePath, 'ID,Name,Quantity\n', 'utf-8');
+    inventory = [];
+    res.status(200).json({message: "Bland CSV created and loaded for editing"});
+})
 
 app.delete('/inventory/:id', (req, res) => {
     const itemId = req.params.id;

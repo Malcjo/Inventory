@@ -1,12 +1,13 @@
 import React, {useState} from "react";
 
 const AddItemForm = ({ onAddItem}) => {
-    const [name, setName] = useState('');
-    const [quantity, setQuantity] = useState('');
+    const [Name, setName] = useState('');
+    const [Quantity, setQuantity] = useState('');
 
     const handleSubmit = (e) =>{
         e.preventDefault();
-        onAddItem({name, quantity});
+        const newItem = { ID: Date.now().toString(), Name: Name, Quantity: parseInt(Quantity, 10) };
+        onAddItem({newItem});
         setName('');
         setQuantity('');
     };
@@ -17,7 +18,7 @@ const AddItemForm = ({ onAddItem}) => {
                 <label>Name:</label>
                 <input
                     type="text"
-                    value={name}
+                    value={Name}
                     onChange={(e) => setName(e.target.value)}
                     required
                 />
@@ -26,7 +27,7 @@ const AddItemForm = ({ onAddItem}) => {
                 <label>Quantity:</label>
                 <input 
                     type="number"
-                    value={quantity}
+                    value={Quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     required
                 />
