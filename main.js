@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 let mainWindow;
+let selectedItemId = null;  // Track the selected item
 
 function saveCSVFile({ data, path }) {
   const savePath = path || dialog.showSaveDialogSync({
@@ -36,8 +37,8 @@ function createWindow() {
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // Load preload script
-      contextIsolation: true, // Security reasons
+      preload: path.join(__dirname, 'preload.js'),  // Load preload script
+      contextIsolation: true,  // Security reasons
     }
   });
 
@@ -48,36 +49,37 @@ function createWindow() {
   mainWindow.webContents.openDevTools();
 }
 
-//function to open the custom popup window
-function createCustomPopup(){
-    customPopup = new BrowserWindow({
-        width: 400,
-        height: 200,
-        parent: mainWindow,
-        modal: true,
-        webPreferences: {
-          preload: path.join(__dirname, 'preload.js'),
-          contextIsolation: true,
-        }
-      });
-      customPopup.loadURL(`file://${path.join(__dirname, 'custom-popup.html')}`);
-      customPopup.on('closed', () =>{
-        customPopup = null;
-      });
+// Function to open the custom popup window
+function createCustomPopup(itemId) {
+  selectedItemId = itemId;
+
+  const customPopup = new BrowserWindow({
+    width: 400,
+    height: 200,
+    parent: mainWindow,
+    modal: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+    }
+  });
+
+  customPopup.loadURL(`file://${path.join(__dirname, 'custom-popup.html')}`);
 }
 
 app.whenReady().then(createWindow);
 
-ipcMain.on('open-custom-popup', () =>{
-    createCustomPopup();
+// Handle the opening of the custom popup
+ipcMain.on('open-custom-popup', (event, itemId) => {
+  createCustomPopup(itemId);
 });
 
-ipcMain.on('custom-amount', (event, amount) =>{
-    mainWindow.webContents.send('custom-amount-received', amount);
-    customPopup.close();
+// Listen for custom amount sent from the popup
+ipcMain.on('custom-amount', (event, customAmount) => {
+  if (customAmount !== null) {
+    mainWindow.webContents.send('update-quantity', selectedItemId, parseInt(customAmount, 10));
+  }
 });
 
 ipcMain.on('save-csv', (event, { data, path }) => saveCSVFile({ data, path }));
 ipcMain.handle('open-csv', () => openCSVFile());
-
-

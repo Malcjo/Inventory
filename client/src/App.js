@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InventoryList from './components/InventoryList';
 import AddItemForm from './components/AddItemForm';
 
 const App = () => {
-  const [inventory, setInventory] = useState([]);  // Manage inventory state
-  const [csvFilePath, setCsvFilePath] = useState(null);  // Manage CSV file path
+  const [inventory, setInventory] = useState([]);
+  const [csvFilePath, setCsvFilePath] = useState(null);
 
-  // Open and load CSV data
   const handleOpenCSV = () => {
     window.electronAPI.openCSV().then(({ data, path }) => {
       const parsedData = data
@@ -15,25 +14,27 @@ const App = () => {
           const [ID, Name, Quantity] = row.split(',');
           return { ID, Name, Quantity: parseInt(Quantity, 10) };
         })
-        .filter(item => item.ID && item.Name && !isNaN(item.Quantity));  // Filter out invalid data
+        .filter(item => item.ID && item.Name && !isNaN(item.Quantity));
 
-      setInventory(parsedData);  // Update inventory state
-      setCsvFilePath(path);  // Update file path state
+      setInventory(parsedData);
+      setCsvFilePath(path);
     });
   };
 
-  const handleCustomPopup = (itemId) =>{
-    window.electronAPI.openCustomPopup();
-
-    //Listen for the custom amount sent from the popup
-    window.electronAPI.onCustomAmountReceived((customAmount) =>{
-      setInventory(inventory.map(item => 
-        item.ID === itemId ? {...item, Quantity: item.Quantity + parseInt(customAmount, 10)} : item
-      ));
-    });
+  const handleCustomPopup = (itemId) => {
+    window.electronAPI.openCustomPopup(itemId);
   };
 
-  // Save the currently loaded CSV
+  useEffect(() => {
+    window.electronAPI.onUpdateQuantity((itemId, customAmount) => {
+      if (customAmount !== null) {
+        setInventory(inventory.map(item =>
+          item.ID === itemId ? { ...item, Quantity: item.Quantity + customAmount } : item
+        ));
+      }
+    });
+  }, [inventory]);
+
   const handleSaveCSV = () => {
     if (csvFilePath) {
       const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
@@ -41,26 +42,21 @@ const App = () => {
     }
   };
 
-  // Save as a new CSV file
   const handleSaveAsCSV = () => {
     const csvData = inventory.map(item => `${item.ID},${item.Name},${item.Quantity}\n`).join('');
     window.electronAPI.saveCSV({ data: csvData });
   };
 
-  // Add a new item to the inventory
-  const addItem = () => {
-    const newItem = { ID: Date.now().toString(), Name: 'New Item', Quantity: 1 };
+  const addItem = (newItem) => {
     setInventory([...inventory, newItem]);
   };
 
-  // Update item quantity
   const updateItemQuantity = (itemId, amount) => {
     setInventory(inventory.map(item =>
       item.ID === itemId ? { ...item, Quantity: item.Quantity + amount } : item
     ));
   };
 
-  // Delete an item from the inventory
   const deleteItem = (itemId) => {
     setInventory(inventory.filter(item => item.ID !== itemId));
   };
@@ -71,28 +67,15 @@ const App = () => {
       <button onClick={handleOpenCSV}>Open CSV</button>
       <button onClick={handleSaveCSV}>Save CSV</button>
       <button onClick={handleSaveAsCSV}>Save As CSV</button>
-      {/*<button onClick={addItem}>Add Item</button>*/}
 
-    <AddItemForm onAddItem={addItem}></AddItemForm>
+      <AddItemForm onAddItem={addItem} />
 
-    <InventoryList 
-      inventory={inventory}
-      updateItemQuantity={updateItemQuantity}
-      deleteItem={deleteItem}
-      onCustomPopup={handleCustomPopup}
-    />
-
-    {/*  <ul>
-        {inventory.map(item => (
-          <li key={item.ID}>
-            {item.Name} - Quantity: {item.Quantity}
-            <button onClick={() => updateItemQuantity(item.ID, 1)}>+</button>
-            <button onClick={() => updateItemQuantity(item.ID, -1)}>-</button>
-            <button onClick={() => deleteItem(item.ID)}>Delete</button>
-          </li>
-        ))}
-      </ul>
-    */}
+      <InventoryList 
+        inventory={inventory}
+        updateItemQuantity={updateItemQuantity}
+        deleteItem={deleteItem}
+        onCustomPopup={handleCustomPopup}
+      />
     </div>
   );
 };

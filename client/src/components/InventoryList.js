@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InventoryList = ({ inventory, updateItemQuantity, deleteItem, onCustomPopup}) => {
+const InventoryList = ({ inventory, updateItemQuantity, deleteItem, onCustomPopup }) => {
   return (
     <div>
       <h2>Inventory List</h2>
