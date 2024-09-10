@@ -1,12 +1,16 @@
-const { ipcRenderer } = require('electron');
+//const { ipcRenderer } = require('electron');
 
 document.getElementById('submitBtn').addEventListener('click', () => {
   const customAmount = document.getElementById('customAmount').value;
+  console.log('Submit button clicked. Custom amount entered:', customAmount); 
 
   if (customAmount) {
-    ipcRenderer.send('custom-amount', customAmount);  // Send the custom amount back to the main window
+    window.electronAPI.sendCustomAmount(customAmount);
+    //ipcRenderer.send('custom-amount', customAmount);  // Send the custom amount back to the main window
   } else {
-    ipcRenderer.send('custom-amount', null);  // Send the custom amount back as null
+    window.electronAPI.sendCustomAmount(null);
+    console.log('No custom amount entered, sending null');
+    //ipcRenderer.send('custom-amount', null);  // Send the custom amount back as null
   }
 
   window.close();  // Close the custom popup after submission

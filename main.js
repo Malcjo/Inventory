@@ -52,6 +52,7 @@ function createWindow() {
 // Function to open the custom popup window
 function createCustomPopup(itemId) {
   selectedItemId = itemId;
+  console.log('Opening custom popup for item ID:', selectedItemId); 
 
   const customPopup = new BrowserWindow({
     width: 400,
@@ -61,10 +62,13 @@ function createCustomPopup(itemId) {
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
+      nodeIntegration: true,
+      enableRemoteModule: true,
     }
   });
 
   customPopup.loadURL(`file://${path.join(__dirname, 'custom-popup.html')}`);
+  customPopup.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);

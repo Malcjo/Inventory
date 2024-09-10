@@ -21,15 +21,14 @@ const App = () => {
     });
   };
 
-  const handleCustomPopup = (itemId) => {
-    window.electronAPI.openCustomPopup(itemId);
-  };
+
 
   useEffect(() => {
     window.electronAPI.onUpdateQuantity((itemId, customAmount) => {
+      console.log('Received updated quantity for item ID:', itemId, 'with amount:', customAmount); 
       if (customAmount !== null) {
         setInventory(inventory.map(item =>
-          item.ID === itemId ? { ...item, Quantity: item.Quantity + customAmount } : item
+          item.ID === itemId ? { ...item, Quantity: item.Quantity = customAmount } : item
         ));
       }
     });
@@ -57,8 +56,18 @@ const App = () => {
     ));
   };
 
+  const updateCustomItemQuantity = (itemId, amount) => {
+    setInventory(inventory.map(item =>
+      item.ID === itemId ? { ...item, Quantity: item.Quantity = amount } : item
+    ));
+  };
+
   const deleteItem = (itemId) => {
     setInventory(inventory.filter(item => item.ID !== itemId));
+  };
+
+  const handleCustomPopup = (itemId) => {
+    window.electronAPI.openCustomPopup(itemId);
   };
 
   return (
