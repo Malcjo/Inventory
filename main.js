@@ -50,8 +50,8 @@ function createWindow() {
 }
 
 // Function to open the custom popup window
-function createCustomPopup(itemId) {
-  selectedItemId = itemId;
+function createCustomPopup(item) {
+  selectedItemId = item.ID;
   console.log('Opening custom popup for item ID:', selectedItemId); 
 
   const customPopup = new BrowserWindow({
@@ -68,7 +68,14 @@ function createCustomPopup(itemId) {
   });
 
   customPopup.loadURL(`file://${path.join(__dirname, 'custom-popup.html')}`);
-  customPopup.webContents.openDevTools();
+
+  customPopup.webContents.once('did-finish-load', () => {
+    customPopup.webContents.send('populate-custom-popup', {
+        name: item.Name,
+        currentQuantity: item.Quantity
+    });
+  });
+  //customPopup.webContents.openDevTools();
 }
 
 app.whenReady().then(createWindow);

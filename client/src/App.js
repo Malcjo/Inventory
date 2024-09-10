@@ -28,11 +28,6 @@ const App = () => {
       console.log('Received updated quantity for item ID:', itemId, 'with amount:', customAmount); 
       if (customAmount !== null) {
         updateCustomItemQuantity(itemId, customAmount);
-        /*
-        setInventory(inventory.map(item =>
-          item.ID === itemId ? { ...item, Quantity: item.Quantity = customAmount } : item
-        ));
-        */
       }
     });
   }, [inventory]);
@@ -69,8 +64,8 @@ const App = () => {
     setInventory(inventory.filter(item => item.ID !== itemId));
   };
 
-  const handleCustomPopup = (itemId) => {
-    window.electronAPI.openCustomPopup(itemId);
+  const handleCustomPopup = (item) => {
+    window.electronAPI.openCustomPopup(item);
   };
 
   return (

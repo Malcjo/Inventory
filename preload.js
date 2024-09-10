@@ -30,5 +30,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateQuantity: (callback) => ipcRenderer.on('update-quantity', (event, itemId, customAmount) => {
       callback(itemId, customAmount);
     }),
-    sendCustomAmount: (customAmount) => ipcRenderer.send('custom-amount', customAmount)  // New function for the popup
+    sendCustomAmount: (customAmount) => ipcRenderer.send('custom-amount', customAmount),  // New function for the popup
+        // This will handle receiving item details for the custom popup
+        populateCustomPopup: (callback) => ipcRenderer.on('populate-custom-popup', (event, data) => callback(data)),
+
+        // Send the custom amount back to the main process
+        sendCustomAmount: (customAmount) => ipcRenderer.send('custom-amount', customAmount)
   });

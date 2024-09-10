@@ -11,7 +11,7 @@ const InventoryList = ({ inventory, updateItemQuantity, deleteItem, onCustomPopu
             <button onClick={() => updateItemQuantity(item.ID, 1)}>+</button>
             <button onClick={() => updateItemQuantity(item.ID, -1)}>-</button>
             <button onClick={() => deleteItem(item.ID)}>Delete</button>
-            <button onClick={() => onCustomPopup(item.ID)}>Custom Amount</button>
+            <button onClick={() => onCustomPopup(item)}>Custom Amount</button>
           </li>
         ))}
       </ul>

@@ -1,5 +1,14 @@
 //const { ipcRenderer } = require('electron');
 
+// Receive the item data from main process
+window.electronAPI.populateCustomPopup(({ name, currentQuantity }) => {
+    // Display the item name in the popup
+    document.getElementById('itemName').innerText = name;
+  
+    // Set the default value of the quantity input
+    document.getElementById('customAmount').value = currentQuantity;
+  });
+
 document.getElementById('submitBtn').addEventListener('click', () => {
   const customAmount = document.getElementById('customAmount').value;
   console.log('Submit button clicked. Custom amount entered:', customAmount); 
