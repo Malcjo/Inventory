@@ -27,9 +27,12 @@ const App = () => {
     window.electronAPI.onUpdateQuantity((itemId, customAmount) => {
       console.log('Received updated quantity for item ID:', itemId, 'with amount:', customAmount); 
       if (customAmount !== null) {
+        updateCustomItemQuantity(itemId, customAmount);
+        /*
         setInventory(inventory.map(item =>
           item.ID === itemId ? { ...item, Quantity: item.Quantity = customAmount } : item
         ));
+        */
       }
     });
   }, [inventory]);
