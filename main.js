@@ -2,6 +2,8 @@ const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
+let mainWindow;
+
 function saveCSVFile({ data, path }) {
   const savePath = path || dialog.showSaveDialogSync({
     title: 'Save CSV File',
@@ -30,7 +32,7 @@ function openCSVFile() {
 }
 
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
@@ -46,7 +48,34 @@ function createWindow() {
   mainWindow.webContents.openDevTools();
 }
 
+//function to open the custom popup window
+function createCustomPopup(){
+    customPopup = new BrowserWindow({
+        width: 400,
+        height: 200,
+        parent: mainWindow,
+        modal: true,
+        webPreferences: {
+          preload: path.join(__dirname, 'preload.js'),
+          contextIsolation: true,
+        }
+      });
+      customPopup.loadURL(`file://${path.join(__dirname, 'custom-popup.html')}`);
+      customPopup.on('closed', () =>{
+        customPopup = null;
+      });
+}
+
 app.whenReady().then(createWindow);
+
+ipcMain.on('open-custom-popup', () =>{
+    createCustomPopup();
+});
+
+ipcMain.on('custom-amount', (event, amount) =>{
+    mainWindow.webContents.send('custom-amount-received', amount);
+    customPopup.close();
+});
 
 ipcMain.on('save-csv', (event, { data, path }) => saveCSVFile({ data, path }));
 ipcMain.handle('open-csv', () => openCSVFile());

@@ -22,6 +22,17 @@ const App = () => {
     });
   };
 
+  const handleCustomPopup = (itemId) =>{
+    window.electronAPI.openCustomPopup();
+
+    //Listen for the custom amount sent from the popup
+    window.electronAPI.onCustomAmountReceived((customAmount) =>{
+      setInventory(inventory.map(item => 
+        item.ID === itemId ? {...item, Quantity: item.Quantity + parseInt(customAmount, 10)} : item
+      ));
+    });
+  };
+
   // Save the currently loaded CSV
   const handleSaveCSV = () => {
     if (csvFilePath) {
@@ -68,6 +79,7 @@ const App = () => {
       inventory={inventory}
       updateItemQuantity={updateItemQuantity}
       deleteItem={deleteItem}
+      onCustomPopup={handleCustomPopup}
     />
 
     {/*  <ul>

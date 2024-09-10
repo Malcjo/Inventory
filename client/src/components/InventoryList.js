@@ -1,6 +1,6 @@
 import React from 'react';
 
-const InventoryList = ({ inventory, updateItemQuantity, deleteItem }) => {
+const InventoryList = ({ inventory, updateItemQuantity, deleteItem, onCustomPopup}) => {
   return (
     <div>
       <h2>Inventory List</h2>
@@ -11,6 +11,7 @@ const InventoryList = ({ inventory, updateItemQuantity, deleteItem }) => {
             <button onClick={() => updateItemQuantity(item.ID, 1)}>+</button>
             <button onClick={() => updateItemQuantity(item.ID, -1)}>-</button>
             <button onClick={() => deleteItem(item.ID)}>Delete</button>
+            <button onClick={() => onCustomPopup(item.ID)}>Custom Amount</button>
           </li>
         ))}
       </ul>
