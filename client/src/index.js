@@ -4,6 +4,8 @@ import './index.css';
 import App from './App';
 import 'bootstrap/dist/css/bootstrap.css';
 
+//for the json package
+////"electron-dev": "concurrently \"npm run build --prefix client\" \"npm run electron\"",
 /*
 //Register the service worker for offline capabilities
 if('serviceWorker' in navigator){

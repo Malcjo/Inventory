@@ -1,0 +1,22 @@
+directories:
+  output: dist
+  buildResources: assets
+extends: null
+appId: com.yourdomain.yourapp
+productName: Test Inventory App
+files:
+  - filter:
+      - client/build/**/*
+      - main.js
+      - preload.js
+      - custom-popup.html
+      - custom-popup.js
+      - client/public/index.html
+      - package.json
+win:
+  target: nsis
+mac:
+  target: dmg
+linux:
+  target: AppImage
+electronVersion: 32.0.1
