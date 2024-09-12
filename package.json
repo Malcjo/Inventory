@@ -1,5 +1,5 @@
 {
-  "name": "inventory",
+  "name": "Test-Inventory-App",
   "version": "1.0.0",
   "main": "main.js",
   "dependencies": {
@@ -16,17 +16,50 @@
     "react-dom": "^18.3.1",
     "react-scripts": "^5.0.1"
   },
+  "build": {
+    "extends":null,
+    "appId": "com.yourdomain.yourapp",
+    "productName": "Test Inventory App",
+    "files": [
+      "client/build/**/*",
+      "main.js",
+      "preload.js",
+      "custom-popup.html",
+      "custom-popup.js",
+      "client/public/index.html",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "electron": "^32.0.1",
+    "electron-builder": "^22.14.13",
     "nodemon": "^3.1.4"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build-react": "react-scripts build --prefix client",
+    "build": "npm run build-react --prefix client && electron-builder",
+    "start-react": "react-scripts start --prefix client",
+    "start-electron": "electron .",
     "electron": "electron .",
-    "electron-dev": "concurrently \"npm run build --prefix client\" \"npm run electron\""
+    "electron-dev": "concurrently \"npm run build --prefix client\" \"npm run electron\"",
+    "electron-builder": "electron-builder",
+    "electron-pack": "build --em.main=client/build/main.js",
+    "preelectron-pack": "npm build"
   },
   "keywords": [],
   "author": "",
